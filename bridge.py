@@ -13,6 +13,13 @@ from tms_client import TMSError, send_with_retry
 
 load_dotenv()  # no-op on Railway, where the vars come from the environment
 
+REQUIRED = ("TMS_HOST", "TMS_PORT", "TMS_AUTH", "BRIDGE_API_KEY")
+missing = [name for name in REQUIRED if not os.environ.get(name)]
+if missing:
+    # Bare KeyError here reads as a healthcheck timeout in the deploy logs,
+    # which says nothing about the actual cause.
+    raise RuntimeError(f"missing required environment variables: {', '.join(missing)}")
+
 HOST = os.environ["TMS_HOST"]
 PORT = int(os.environ["TMS_PORT"])
 AUTH = os.environ["TMS_AUTH"]
