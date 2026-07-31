@@ -54,7 +54,7 @@ def search_loads(body: LoadQuery, x_api_key: str = Header(...)):
     return {"loads": records, "count": len(records)}
 
 @app.post("/loads/get")
-def search_loads(body: LoadGet, x_api_key: str = Header(...)):
+def get_load(body: LoadGet, x_api_key: str = Header(...)):
     if x_api_key != API_KEY:
         raise HTTPException(401, "invalid api key")
     filters = {TMS_GET_FIELDS[k]: v for k, v in body.model_dump(exclude_none=True).items()}
@@ -64,4 +64,6 @@ def search_loads(body: LoadGet, x_api_key: str = Header(...)):
         records = send_with_retry(HOST, PORT, "LOAD_GET", AUTH, **filters)
     except TMSError as exc:
         raise HTTPException(502, {"code": exc.code, "message": exc.msg})
-    return records[0] | {}
+    if not records:
+        raise HTTPException(404, "load not found")
+    return records[0]
