@@ -26,9 +26,13 @@ class LoadQuery(BaseModel):
     destination: str | None = None
     equipment: str | None = None
 
+class LoadGet(BaseModel):
+    id: str | None = None
+
 
 # The TMS names its filters differently than the workflow-facing API does.
-TMS_FIELDS = {"origin": "orig_city", "destination": "dest_city", "equipment": "eqtype"}
+TMS_QUERY_FIELDS = {"origin": "orig_city", "destination": "dest_city", "equipment": "eqtype"}
+TMS_GET_FIELDS = {"id": "load_id"}
 
 
 @app.get("/health")
@@ -40,7 +44,7 @@ def health():
 def search_loads(body: LoadQuery, x_api_key: str = Header(...)):
     if x_api_key != API_KEY:
         raise HTTPException(401, "invalid api key")
-    filters = {TMS_FIELDS[k]: v for k, v in body.model_dump(exclude_none=True).items()}
+    filters = {TMS_QUERY_FIELDS[k]: v for k, v in body.model_dump(exclude_none=True).items()}
     if not filters:
         raise HTTPException(400, "at least one of origin, destination, equipment is required")
     try:
@@ -48,3 +52,16 @@ def search_loads(body: LoadQuery, x_api_key: str = Header(...)):
     except TMSError as exc:
         raise HTTPException(502, {"code": exc.code, "message": exc.msg})
     return {"loads": records, "count": len(records)}
+
+@app.post("/loads/get")
+def search_loads(body: LoadGet, x_api_key: str = Header(...)):
+    if x_api_key != API_KEY:
+        raise HTTPException(401, "invalid api key")
+    filters = {TMS_GET_FIELDS[k]: v for k, v in body.model_dump(exclude_none=True).items()}
+    if not filters:
+        raise HTTPException(400, "load_id is required")
+    try:
+        records = send_with_retry(HOST, PORT, "LOAD_GET", AUTH, **filters)
+    except TMSError as exc:
+        raise HTTPException(502, {"code": exc.code, "message": exc.msg})
+    return records[0] | {}
