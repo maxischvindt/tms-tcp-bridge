@@ -43,18 +43,18 @@ class LoadQuery(BaseModel):
     equipment: Upper | None = None
 
 class LoadGet(BaseModel):
-    id: Upper | None = None
+    load_id: Upper | None = None
 
 class LoadBook(BaseModel):
-    id: Upper | None = None
-    mc_num: str | None = None
+    load_id: Upper | None = None
+    mc_num: int | None = None
     agreed_rate: int | None = None
 
 
 # The TMS names its filters differently than the workflow-facing API does.
 TMS_QUERY_FIELDS = {"origin": "orig_city", "destination": "dest_city", "equipment": "eqtype"}
-TMS_GET_FIELDS = {"id": "load_id"}
-TMS_BOOK_FIELDS = {"id": "load_id", "mc_num": "mc_num", "agreed_rate": "agreed_rate"}
+TMS_GET_FIELDS = {"load_id": "load_id"}
+TMS_BOOK_FIELDS = {"load_id": "load_id", "mc_num": "mc_num", "agreed_rate": "agreed_rate"}
 
 
 @app.get("/health")
