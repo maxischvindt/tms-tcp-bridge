@@ -30,17 +30,23 @@ app = FastAPI()
 
 
 def _upper(value):
-    """The TMS matches LOAD_ID and EQTYPE case-sensitively; cities it does not."""
+    """The TMS matches LOAD_ID case-sensitively; cities it does not."""
     return value.upper() if isinstance(value, str) else value
 
 
+def _eqtype(value):
+    """EQTYPE is uppercase and underscored: a carrier's "dry van" is DRY_VAN."""
+    return "_".join(value.upper().split()) if isinstance(value, str) else value
+
+
 Upper = Annotated[str, BeforeValidator(_upper)]
+Equipment = Annotated[str, BeforeValidator(_eqtype)]
 
 
 class LoadQuery(BaseModel):
     origin: str | None = None
     destination: str | None = None
-    equipment: Upper | None = None
+    equipment: Equipment | None = None
 
 class LoadGet(BaseModel):
     load_id: Upper | None = None
